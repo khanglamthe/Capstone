@@ -2,6 +2,18 @@ version: 2.1
 
 jobs:
 
+  lint-docker:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    steps:
+      - checkout
+      - run:
+          name: lint
+          command: |
+            wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
+            chmod +x ./hadolint
+            ./hadolint Dockerfile
+
   build-frontend:
     docker:
       - image: circleci/node:13.8.0
