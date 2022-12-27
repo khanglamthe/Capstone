@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caps-deploy
+  labels:
+    app: caps-tone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caps-tone
+  template:
+    metadata:
+      labels:
+        app: caps-tone
+
+    spec:
+      containers:
+        - name: caps-tone
+          image: khanglt/caps-tone:v1.0.0
+          ports:
+            - containerPort: 3000

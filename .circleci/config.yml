@@ -30,6 +30,48 @@ jobs:
           command: |
             npm install
             npm run test
+  
+  deploy-dockerhub:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    steps:
+      - checkout
+      - run:
+          name: Login docker hub
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login --username $DOCKERHUB_USERNAME --password-stdin
+      - run:
+          name: Deploy to dockerhub
+          command: |
+            docker build -t khanglt/caps-tone:v1.0.0 .
+            docker images
+            docker push khanglt/caps-tone:v1.0.0
+
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y tar gzip
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            mv /tmp/eksctl /usr/local/bin
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.25.0/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+      - run:
+          name: Deploy application with kubernetes
+          command: |
+            aws sts get-caller-identity
+            aws eks update-kubeconfig --name khang-uda --region us-west-2
+            kubectl get nodes
+            kubectl apply -f ./deploy.yml
+            kubectl get pods
+            kubectl create -f ./svc.yml
+            sleep 30
+            kubectl get svc
 
 workflows:
   default:
@@ -38,3 +80,9 @@ workflows:
       - test-frontend:
           requires:
             - build-frontend
+      - deploy-dockerhub:
+          requires:
+              - test-frontend
+      - deploy-infrastructure:
+          requires:
+              - deploy-dockerhub
