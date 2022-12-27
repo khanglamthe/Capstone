@@ -88,6 +88,7 @@ jobs:
 workflows:
   default:
     jobs:
+      - lint-docker
       - build-frontend
       - test-frontend:
           requires:
