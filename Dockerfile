@@ -9,7 +9,6 @@ COPY . /app
 ## Step 3:
 RUN ls -l 
 RUN npm install
-dfghjk
 
 ## Step 4:
 EXPOSE 3000
